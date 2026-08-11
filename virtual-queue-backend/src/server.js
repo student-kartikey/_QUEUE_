@@ -27,7 +27,7 @@ io.on("connection", (socket) => {
 
 });
 
-const DEFAULT_PORT = Number(process.env.PORT) || 5001;
+const DEFAULT_PORT = Number(process.env.PORT) || 5002;
 
 const startServer = (port) => {
     const onError = (error) => {
@@ -46,7 +46,7 @@ const startServer = (port) => {
 
     server.listen(port, () => {
         server.removeListener("error", onError);
-        console.log(`🚀 Server running at http://localhost:${port}`);
+        console.log(` Server running at http://localhost:${port}`);
     });
 };
 

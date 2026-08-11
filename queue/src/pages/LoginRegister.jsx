@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowRight, Clock3, ShieldCheck, Ticket, UsersRound } from "lucide-react";
 
 const userActions = [
@@ -40,8 +40,6 @@ const adminActions = [
 ];
 
 export default function LoginRegister() {
-  const navigate = useNavigate();
-  const [mode, setMode] = useState("login");
   const [role, setRole] = useState("user");
 
   const isAdmin = role === "admin";
@@ -115,7 +113,6 @@ export default function LoginRegister() {
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <Link
                 to={isAdmin ? "/admin/login" : "/login/login"}
-                onClick={() => setMode("login")}
                 className="inline-flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-4 font-semibold text-ink hover:bg-slate-50"
               >
                 Login as {isAdmin ? "Admin" : "User"}
@@ -123,7 +120,6 @@ export default function LoginRegister() {
               </Link>
               <Link
                 to={isAdmin ? "/admin/register" : "/login/register"}
-                onClick={() => setMode("register")}
                 className="inline-flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-4 font-semibold text-ink hover:bg-slate-50"
               >
                 Register as {isAdmin ? "Admin" : "User"}
@@ -133,103 +129,36 @@ export default function LoginRegister() {
           </div>
         </div>
 
-        <form className="rounded-3xl border border-slate-200 bg-white p-8 shadow-panel">
-          <div className="grid grid-cols-2 rounded-full bg-slate-100 p-1">
-            {[
-              { id: "login", label: "Login" },
-              { id: "register", label: "Register" },
-            ].map((item) => (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => setMode(item.id)}
-                className={`rounded-full px-4 py-3 text-sm font-semibold capitalize ${
-                  mode === item.id
-                    ? "bg-white text-ink shadow-sm"
-                    : "text-slate-500"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-panel">
+          <p className="text-sm font-bold uppercase tracking-wide text-mint">
+            Quick Start
+          </p>
+          <h2 className="mt-3 text-3xl font-bold text-ink">
+            {isAdmin ? "Admin access" : "User access"}
+          </h2>
+          <p className="mt-4 leading-7 text-slate-600">
+            Select Login or Register to continue to the dedicated auth flow for your role.
+          </p>
+
+          <div className="mt-8 grid gap-4">
+            <Link
+              to={isAdmin ? "/admin/login" : "/login/login"}
+              className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-4 font-semibold text-ink hover:bg-slate-50"
+            >
+              {isAdmin ? "Admin Login" : "User Login"}
+            </Link>
+            <Link
+              to={isAdmin ? "/admin/register" : "/login/register"}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-ink px-5 py-4 font-semibold text-white hover:bg-slate-800"
+            >
+              {isAdmin ? "Admin Register" : "User Register"}
+            </Link>
           </div>
 
-          <div className="mt-8">
-            <p className="text-sm font-semibold text-slate-600">
-              {mode === "login"
-                ? `Sign in to your ${isAdmin ? "admin" : "user"} account`
-                : `Create a new ${isAdmin ? "admin" : "user"} account`}
-            </p>
+          <div className="mt-8 rounded-3xl bg-slate-50 p-6 text-sm text-slate-600">
+            This portal page only routes you to the auth pages. The login/register forms are available on the dedicated User and Admin auth screens.
           </div>
-
-          {mode === "register" && isAdmin && (
-            <label className="mt-5 block">
-              <span className="text-sm font-semibold text-slate-600">
-                Admin Access Code
-              </span>
-              <input
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-mint"
-                placeholder="Enter admin access code"
-              />
-            </label>
-          )}
-
-          {mode === "register" && !isAdmin && (
-            <label className="mt-5 block">
-              <span className="text-sm font-semibold text-slate-600">
-                Full Name
-              </span>
-              <input
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-mint"
-                placeholder="Enter your name"
-              />
-            </label>
-          )}
-
-          <label className="mt-5 block">
-            <span className="text-sm font-semibold text-slate-600">
-              Email or Phone
-            </span>
-            <input
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-mint"
-              placeholder="patient@example.com"
-            />
-          </label>
-
-          <label className="mt-5 block">
-            <span className="text-sm font-semibold text-slate-600">
-              Password
-            </span>
-            <input
-              type="password"
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-mint"
-              placeholder="Enter password"
-            />
-          </label>
-
-          {mode === "login" && (
-            <div className="mt-4 flex justify-between items-center gap-3 text-sm text-slate-600">
-              <Link
-                to="/forgot-password"
-                className="rounded-md px-2 py-1 font-semibold text-slate-600 hover:text-mint"
-              >
-                Forgot Password?
-              </Link>
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">
-                {isAdmin ? "Admin Access" : "User Access"}
-              </span>
-            </div>
-          )}
-
-          <Link
-            to={isAdmin ? `/admin/${mode}` : `/login/${mode}`}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-ink px-5 py-3 font-semibold text-white hover:bg-slate-800"
-          >
-            {mode === "login"
-              ? `Login as ${isAdmin ? "Admin" : "User"}`
-              : `Create ${isAdmin ? "Admin" : "User"} Account`}
-          </Link>
-        </form>
+        </div>
       </div>
     </section>
   );

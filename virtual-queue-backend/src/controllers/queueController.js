@@ -19,6 +19,8 @@ const { success, failure } = require("../utils/response");
 
 let currentServing = 0;
 let nextTokenNumber = 1;
+let currentServingToken = null;
+let completedTokens = 0;
 
 // CREATE TOKEN
 const takeToken = (req, res) => {
@@ -80,6 +82,8 @@ const getQueue = (req, res) => {
 
         currentServing,
 
+        currentToken: currentServingToken,
+
         total: queue.length,
 
         queue
@@ -93,6 +97,10 @@ const serveNext = (req, res) => {
 
     const io = req.app.get("io");
 
+    if (currentServingToken) {
+        return failure(res, "Complete the current token before calling the next one", 409);
+    }
+
     if (queue.length === 0) {
         return failure(res, "Queue Empty");
     }
@@ -102,6 +110,7 @@ const serveNext = (req, res) => {
     served.status = "serving";
 
     currentServing = served.tokenNumber;
+    currentServingToken = served;
 
     if (io) {
         io.emit("tokenServing", served);
@@ -188,17 +197,15 @@ const completeToken = (req, res) => {
 
     const tokenNumber = Number(req.params.tokenNumber);
 
-    const index = queue.findIndex(
-        q => q.tokenNumber === tokenNumber
-    );
-
-    if (index === -1) {
+    if (!currentServingToken || currentServingToken.tokenNumber !== tokenNumber) {
         return failure(res, "Token Not Found", 404);
     }
 
-    const completed = queue.splice(index, 1)[0];
+    const completed = currentServingToken;
 
     completed.status = "completed";
+    currentServingToken = null;
+    completedTokens += 1;
 
     if (io) {
         io.emit("tokenCompleted", completed);
@@ -217,6 +224,10 @@ const resetQueue = (req, res) => {
     clearQueue();
 
     currentServing = 0;
+
+    currentServingToken = null;
+
+    completedTokens = 0;
 
     nextTokenNumber = 1;
 
@@ -257,15 +268,11 @@ const queueStatus = (req, res) => {
             q => q.status === "waiting"
         ).length,
 
-        totalServing: queue.filter(
-            q => q.status === "serving"
-        ).length,
+        totalServing: currentServingToken ? 1 : 0,
 
-        totalCompleted: queue.filter(
-            q => q.status === "completed"
-        ).length,
+        totalCompleted: completedTokens,
 
-        totalTokens: queue.length
+        totalTokens: queue.length + (currentServingToken ? 1 : 0)
 
     });
 

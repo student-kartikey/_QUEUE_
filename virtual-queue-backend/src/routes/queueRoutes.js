@@ -10,7 +10,12 @@ const {
 
     serveNext,
 
-    assignCounter
+    assignCounter,
+    cancelToken,
+    completeToken,
+    resetQueue,
+    queueStatus,
+    getCountersStatus
 
 } = require("../controllers/queueController");
 
@@ -24,8 +29,18 @@ router.post("/token", validateToken, takeToken);
 
 router.get("/", getQueue);
 
+router.get("/status", queueStatus);
+
+router.get("/counters", getCountersStatus);
+
 router.post("/serve", serveNext);
 
 router.post("/assign", assignCounter);
+
+router.post("/:tokenNumber/complete", completeToken);
+
+router.delete("/:tokenNumber", cancelToken);
+
+router.post("/reset", resetQueue);
 
 module.exports = router;

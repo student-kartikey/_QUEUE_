@@ -1,14 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CheckCircle2, SkipForward, UserCheck } from "lucide-react";
-import { staffQueue } from "../data/mockData.jsx";
+import { completeToken, getApiError, getQueue, serveNext } from "../api/queueApi.jsx";
 
 export default function StaffDashboard() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const current = staffQueue[currentIndex]?.token || "Queue Complete";
-  const hasNextToken = currentIndex < staffQueue.length - 1;
+  const [queueData, setQueueData] = useState({ queue: [], currentToken: null, currentServing: 0 });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const current = queueData.currentToken?.tokenNumber || "No token";
 
-  function callNextToken() {
-    setCurrentIndex((index) => Math.min(index + 1, staffQueue.length - 1));
+  const loadQueue = async () => {
+    try {
+      const data = await getQueue();
+      setQueueData(data);
+      setError("");
+    } catch (requestError) {
+      setError(getApiError(requestError));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadQueue();
+    const interval = window.setInterval(loadQueue, 5000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  async function callNextToken() {
+    try {
+      await serveNext();
+      await loadQueue();
+    } catch (requestError) {
+      setError(getApiError(requestError));
+    }
+  }
+
+  async function markCompleted() {
+    if (!queueData.currentToken) return;
+    try {
+      await completeToken(queueData.currentToken.tokenNumber);
+      await loadQueue();
+    } catch (requestError) {
+      setError(getApiError(requestError));
+    }
   }
 
   return (
@@ -30,21 +64,22 @@ export default function StaffDashboard() {
           <div className="mt-5 grid gap-3">
             <button
               onClick={callNextToken}
-              disabled={!hasNextToken}
+              disabled={loading || Boolean(queueData.currentToken) || queueData.queue.length === 0}
               className="flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
             >
               <UserCheck size={18} /> Call Next
             </button>
-            <button className="flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-3 font-semibold text-ink hover:bg-slate-100">
+            <button disabled className="flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-3 font-semibold text-ink opacity-50">
               <SkipForward size={18} /> Skip Token
             </button>
-            <button className="flex items-center justify-center gap-2 rounded-md bg-mint px-5 py-3 font-semibold text-white hover:bg-emerald-600">
+            <button onClick={markCompleted} disabled={!queueData.currentToken} className="flex items-center justify-center gap-2 rounded-md bg-mint px-5 py-3 font-semibold text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300">
               <CheckCircle2 size={18} /> Mark Completed
             </button>
           </div>
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-panel">
+          {error && <p className="p-4 text-sm font-medium text-red-600">{error}</p>}
           <table className="w-full border-collapse text-left">
             <thead className="bg-slate-100 text-sm text-slate-600">
               <tr>
@@ -55,22 +90,25 @@ export default function StaffDashboard() {
               </tr>
             </thead>
             <tbody>
-              {staffQueue.map((item, index) => (
-                <tr key={item.token} className={`border-t border-slate-100 ${index === currentIndex ? "bg-emerald-50" : ""}`}>
-                  <td className="px-4 py-4 font-bold">{item.token}</td>
+              {queueData.queue.map((item) => (
+                <tr key={item.tokenNumber} className="border-t border-slate-100">
+                  <td className="px-4 py-4 font-bold">{item.tokenNumber}</td>
                   <td className="px-4 py-4">{item.name}</td>
-                  <td className="px-4 py-4 text-slate-600">{item.service}</td>
+                  <td className="px-4 py-4 text-slate-600">Queue service</td>
                   <td className="px-4 py-4">
                     <span
                       className={`rounded-md px-2 py-1 text-xs font-bold ${
-                        index === currentIndex ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                        item.status === "serving" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                       }`}
                     >
-                      {index === currentIndex ? "Serving" : item.status}
+                      {item.status}
                     </span>
                   </td>
                 </tr>
               ))}
+              {!loading && queueData.queue.length === 0 && (
+                <tr><td colSpan="4" className="px-4 py-6 text-center text-slate-500">The waiting queue is empty.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
