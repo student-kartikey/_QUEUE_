@@ -108,3 +108,100 @@ This repository contains a virtual queue system with a React frontend and an Exp
 ## License
 
 This repository does not include a license file. Add one if you want to publish or share the code publicly.
+
+## Local Run Instructions
+
+Follow the steps below to run this project locally.
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- Node.js
+- npm
+- Git
+- MongoDB, if required by your environment
+
+### 1. Clone the Repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd <PROJECT_FOLDER_NAME>
+```
+
+### 2. Install Dependencies
+
+Install the frontend dependencies:
+
+```bash
+cd queue
+npm install
+```
+
+Open a new terminal and install the backend dependencies:
+
+```bash
+cd virtual-queue-backend
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file inside `virtual-queue-backend/`.
+
+Example:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+```
+
+Add any other environment variables required by your project. Never upload passwords, API keys, database credentials, or other secrets to GitHub.
+
+### 4. Start the Backend
+
+Inside the `virtual-queue-backend/` folder, run:
+
+```bash
+npm start
+```
+
+The backend will run on:
+
+```text
+http://localhost:5000
+```
+
+For development with automatic restarts, use `npm run dev` instead.
+
+### 5. Start the Frontend
+
+Open a new terminal and run:
+
+```bash
+cd queue
+npm run dev
+```
+
+The terminal will show a URL similar to:
+
+```text
+http://127.0.0.1:5173
+```
+
+Open that URL in your browser.
+
+### 6. Verify the Application
+
+Make sure:
+
+- The frontend is running.
+- The backend is running.
+- The database is connected, if required.
+- The frontend API URL points to the correct backend URL.
+- No errors are displayed in the terminals.
+
+### 7. Stop the Application
+
+To stop the frontend or backend server, press `Ctrl + C` in the corresponding terminal.
